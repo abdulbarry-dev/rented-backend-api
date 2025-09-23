@@ -2,147 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
 {
+    public function __construct(
+        private UserService $userService
+    ) {}
+
     /**
-     * Display a listing of the resource.
+     * Display a listing of users with pagination
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $users = User::all();
+        $users = $this->userService->getAllUsers();
         
-        return response()->json([
-            'success' => true,
-            'data' => $users
-        ], 200);
+        return UserResource::collection($users);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created user
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = $this->userService->createUser($request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'User created successfully',
-            'data' => $user
+            'data' => new UserResource($user)
         ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified user
      */
-    public function show(string $id): JsonResponse
+    public function show(User $user): JsonResponse
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
         return response()->json([
             'success' => true,
-            'data' => $user
-        ], 200);
+            'data' => new UserResource($user)
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified user
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'sometimes|required|string|max:255',
-            'last_name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
-            'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . $id,
-            'password' => 'sometimes|required|string|min:8',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        $updateData = $request->only(['first_name', 'last_name', 'email', 'phone']);
-        
-        if ($request->has('password')) {
-            $updateData['password'] = Hash::make($request->password);
-        }
-
-        $user->update($updateData);
+        $updatedUser = $this->userService->updateUser($user, $request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully',
-            'data' => $user
-        ], 200);
+            'data' => new UserResource($updatedUser)
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified user
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(User $user): JsonResponse
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
-        $user->delete();
+        $this->userService->deleteUser($user);
 
         return response()->json([
             'success' => true,
             'message' => 'User deleted successfully'
-        ], 200);
+        ]);
     }
 }

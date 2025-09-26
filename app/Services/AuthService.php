@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class AuthService extends BaseService
+{
+    /**
+     * Register a new user
+     */
+    public function register(array $data): User
+    {
+        return $this->handleUniqueConstraint(function () use ($data) {
+            return User::create([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($data['password']),
+            ]);
+        }, 'email or phone');
+    }
+
+    /**
+     * Attempt to authenticate user
+     */
+    public function attempt(array $credentials): bool
+    {
+        return Auth::attempt($credentials);
+    }
+
+    /**
+     * Get authenticated user
+     */
+    public function user(): ?User
+    {
+        return Auth::user();
+    }
+
+    /**
+     * Logout current user
+     */
+    public function logout(): void
+    {
+        Auth::logout();
+    }
+}

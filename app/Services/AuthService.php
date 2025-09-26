@@ -19,7 +19,9 @@ class AuthService extends BaseService
                 'last_name' => $data['last_name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
-                'password' => Hash::make($data['password']),
+                'password_hash' => Hash::make($data['password']),
+                'role' => $data['role'] ?? 'customer', // Default to customer
+                'is_active' => true,
             ]);
         }, 'email or phone');
     }

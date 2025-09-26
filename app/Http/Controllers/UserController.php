@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class UserController extends Controller
@@ -75,6 +76,62 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User deleted successfully'
+        ]);
+    }
+
+    /**
+     * Get users by role
+     */
+    public function getUsersByRole(string $role): AnonymousResourceCollection
+    {
+        $users = $this->userService->getUsersByRole($role);
+        
+        return UserResource::collection($users);
+    }
+
+    /**
+     * Activate user
+     */
+    public function activate(User $user): JsonResponse
+    {
+        $activatedUser = $this->userService->activateUser($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User activated successfully',
+            'data' => new UserResource($activatedUser)
+        ]);
+    }
+
+    /**
+     * Deactivate user
+     */
+    public function deactivate(User $user): JsonResponse
+    {
+        $deactivatedUser = $this->userService->deactivateUser($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deactivated successfully',
+            'data' => new UserResource($deactivatedUser)
+        ]);
+    }
+
+    /**
+     * Change user role
+     */
+    public function changeRole(Request $request, User $user): JsonResponse
+    {
+        $request->validate([
+            'role' => 'required|string|in:customer,seller'
+        ]);
+
+        $updatedUser = $this->userService->changeUserRole($user, $request->role);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User role changed successfully',
+            'data' => new UserResource($updatedUser)
         ]);
     }
 }

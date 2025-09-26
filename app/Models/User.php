@@ -23,7 +23,9 @@ class User extends Authenticatable
         'last_name',
         'email',
         'phone',
-        'password',
+        'password_hash',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -32,7 +34,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
     ];
 
@@ -45,7 +47,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password_hash' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -87,5 +90,69 @@ class User extends Authenticatable
     public function scopeUnverified($query)
     {
         return $query->whereNull('email_verified_at');
+    }
+
+    /**
+     * Check if user is a customer.
+     */
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    /**
+     * Check if user is a seller.
+     */
+    public function isSeller(): bool
+    {
+        return $this->role === 'seller';
+    }
+
+    /**
+     * Check if user is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * Scope to filter active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope to filter inactive users.
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    /**
+     * Scope to filter by role.
+     */
+    public function scopeByRole($query, string $role)
+    {
+        return $query->where('role', $role);
+    }
+
+    /**
+     * Get password attribute (compatibility method).
+     */
+    public function getPasswordAttribute()
+    {
+        return $this->password_hash;
+    }
+
+    /**
+     * Set password attribute (compatibility method).
+     */
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password_hash'] = $value;
     }
 }

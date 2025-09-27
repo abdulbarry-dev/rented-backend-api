@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AdminProductController;
+use App\Http\Controllers\UserVerificationController;
+use App\Http\Controllers\AdminUserVerificationController;
 
 // Public routes (no authentication required)
 Route::post('/register', [AuthController::class, 'register']);
@@ -20,6 +24,10 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
 
+// Public product routes (no authentication required)
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+
 // Protected routes (authentication required)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes - available to all authenticated users
@@ -32,16 +40,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tokens', [AuthController::class, 'tokens']);
     Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken']);
     
-    // User management routes - RESTRICTED to sellers only
-    Route::middleware('can:manage-users')->group(function () {
-        Route::apiResource('users', UserController::class);
-        
-        // Additional user management endpoints
-        Route::get('/users/role/{role}', [UserController::class, 'getUsersByRole']);
-        Route::patch('/users/{user}/activate', [UserController::class, 'activate']);
-        Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate']);
-        Route::patch('/users/{user}/role', [UserController::class, 'changeRole']);
-    });
+    // Product management routes - available to all authenticated users
+    Route::get('/my-products', [ProductController::class, 'myProducts']);
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{product}', [ProductController::class, 'update']);
+    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+    
+    // User verification routes - available to all authenticated users
+    Route::get('/verification/status', [UserVerificationController::class, 'status']);
+    Route::get('/verification/requirements', [UserVerificationController::class, 'requirements']);
+    Route::post('/verification/submit', [UserVerificationController::class, 'submit']);
+    Route::post('/verification/resubmit', [UserVerificationController::class, 'resubmit']);
+    
+    // Note: User management is now exclusively handled by admins via /api/admin/* routes
 });
 
 // Admin protected routes (admin authentication required)
@@ -57,11 +68,22 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::get('/admins', [AdminController::class, 'index']);
         Route::patch('/admins/{admin}/status', [AdminController::class, 'updateStatus']);
         
-        // Full access to all user API endpoints for super admins
+        // User management - ADMIN ONLY (super admins have full access)
         Route::apiResource('users', UserController::class);
         Route::get('/users/role/{role}', [UserController::class, 'getUsersByRole']);
         Route::patch('/users/{user}/activate', [UserController::class, 'activate']);
         Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate']);
         Route::patch('/users/{user}/role', [UserController::class, 'changeRole']);
+        
+        // Product management - ADMIN ONLY (super admins can review products)
+        Route::get('/products/pending', [AdminProductController::class, 'pendingProducts']);
+        Route::get('/products/all', [AdminProductController::class, 'allProducts']);
+        Route::patch('/products/{product}/review', [AdminProductController::class, 'reviewProduct']);
+        
+        // User verification management - ADMIN ONLY (super admins can review user verifications)
+        Route::get('/verifications/pending', [AdminUserVerificationController::class, 'pendingVerifications']);
+        Route::get('/verifications/all', [AdminUserVerificationController::class, 'allVerifications']);
+        Route::get('/verifications/statistics', [AdminUserVerificationController::class, 'statistics']);
+        Route::patch('/verifications/{verification}/review', [AdminUserVerificationController::class, 'reviewVerification']);
     });
 });

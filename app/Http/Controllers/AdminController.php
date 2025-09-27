@@ -94,10 +94,6 @@ class AdminController extends Controller
         try {
             $admin = $request->user();
             
-            if (!$admin instanceof Admin) {
-                throw new UnauthorizedException('Invalid admin authentication');
-            }
-
             // Log the logout action
             $admin->logAction('logout');
             
@@ -121,10 +117,6 @@ class AdminController extends Controller
         try {
             $admin = $request->user();
             
-            if (!$admin instanceof Admin) {
-                throw new UnauthorizedException('Invalid admin authentication');
-            }
-
             // Log the logout all action
             $admin->logAction('logout_all');
             
@@ -148,10 +140,6 @@ class AdminController extends Controller
         try {
             $admin = $request->user();
             
-            if (!$admin instanceof Admin) {
-                throw new UnauthorizedException('Invalid admin authentication');
-            }
-
             return response()->json([
                 'success' => true,
                 'data' => [

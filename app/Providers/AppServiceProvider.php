@@ -22,37 +22,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // User authorization gates
+        // User management gates (ADMIN ONLY)
         Gate::define('manage-users', function ($user) {
-            // Allow super admins to manage users
-            if ($user instanceof Admin) {
-                return $user->isSuper() && $user->isActive();
-            }
-            // Allow if it's a User model with seller role and active
-            if ($user instanceof User) {
-                return $user->isSeller() && $user->isActive();
-            }
-            // Deny for other cases
-            return false;
+            // Only super admins can manage users
+            return $user instanceof Admin && $user->isSuper() && $user->isActive();
         });
         
         Gate::define('view-all-users', function ($user) {
-            // Allow super admins to view all users
-            if ($user instanceof Admin) {
-                return $user->isSuper() && $user->isActive();
-            }
-            // Allow if it's a User model with seller role and active
-            if ($user instanceof User) {
-                return $user->isSeller() && $user->isActive();
-            }
-            // Deny for other cases
-            return false;
+            // Only super admins can view all users
+            return $user instanceof Admin && $user->isSuper() && $user->isActive();
         });
         
+        // Profile management (Users can manage their own profiles)
         Gate::define('manage-own-profile', function ($user, $targetUser = null) {
-            // Only allow User models
+            // Users can manage their own profile only
             if ($user instanceof User && $targetUser instanceof User) {
-                return $user->id === $targetUser->id || ($user->isSeller() && $user->isActive());
+                return $user->id === $targetUser->id;
+            }
+            // Admins can manage any profile
+            if ($user instanceof Admin && $targetUser instanceof User) {
+                return $user->isSuper() && $user->isActive();
             }
             return false;
         });

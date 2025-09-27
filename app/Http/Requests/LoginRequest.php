@@ -14,7 +14,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|string|email',
+            'login' => 'required|string', // Can be email or phone
             'password' => 'required|string|min:8',
         ];
     }
@@ -22,10 +22,23 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Please enter a valid email address.',
+            'login.required' => 'Email or phone number is required.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters.',
         ];
+    }
+
+    /**
+     * Validate that login is either email or phone format
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $login = $this->input('login');
+            
+            if (!filter_var($login, FILTER_VALIDATE_EMAIL) && !preg_match('/^[0-9+\-\s()]+$/', $login)) {
+                $validator->errors()->add('login', 'Login must be a valid email address or phone number.');
+            }
+        });
     }
 }

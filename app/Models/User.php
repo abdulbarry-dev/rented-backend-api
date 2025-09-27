@@ -155,4 +155,89 @@ class User extends Authenticatable
     {
         $this->attributes['password_hash'] = $value;
     }
+
+    /**
+     * Get the user's verification record.
+     */
+    public function verification()
+    {
+        return $this->hasOne(UserVerification::class);
+    }
+
+    /**
+     * Check if user has a verified identity.
+     */
+    public function isVerified(): bool
+    {
+        return $this->verification && $this->verification->isVerified();
+    }
+
+    /**
+     * Check if user has a verification in progress.
+     */
+    public function hasVerificationInProgress(): bool
+    {
+        return $this->verification && $this->verification->isPending();
+    }
+
+    /**
+     * Check if user's verification was rejected.
+     */
+    public function isVerificationRejected(): bool
+    {
+        return $this->verification && $this->verification->isRejected();
+    }
+
+    /**
+     * Get user's verification status.
+     */
+    public function getVerificationStatus(): ?string
+    {
+        return $this->verification ? $this->verification->verification_status : null;
+    }
+
+    /**
+     * Check if user can create/edit products.
+     */
+    public function canManageProducts(): bool
+    {
+        return $this->isVerified() && $this->isSeller();
+    }
+
+    /**
+     * Check if user can rent/buy products.
+     */
+    public function canRentProducts(): bool
+    {
+        return $this->isVerified();
+    }
+
+    /**
+     * Check if user is restricted to browsing only.
+     */
+    public function isBrowsingOnly(): bool
+    {
+        return !$this->isVerified();
+    }
+
+    /**
+     * Scope to filter verified users (identity verified).
+     */
+    public function scopeIdentityVerified($query)
+    {
+        return $query->whereHas('verification', function ($q) {
+            $q->where('verification_status', 'verified');
+        });
+    }
+
+    /**
+     * Scope to filter unverified users (identity not verified).
+     */
+    public function scopeIdentityUnverified($query)
+    {
+        return $query->whereDoesntHave('verification')
+            ->orWhereHas('verification', function ($q) {
+                $q->where('verification_status', '!=', 'verified');
+            });
+    }
 }

@@ -27,11 +27,16 @@ class AuthService extends BaseService
     }
 
     /**
-     * Attempt to authenticate user
+     * Attempt to authenticate user with email or phone
      */
     public function attempt(array $credentials): bool
     {
-        return Auth::attempt($credentials);
+        $loginField = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        
+        return Auth::attempt([
+            $loginField => $credentials['login'],
+            'password' => $credentials['password']
+        ]);
     }
 
     /**

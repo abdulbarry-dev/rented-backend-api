@@ -19,7 +19,17 @@ class AdminResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
-            'is_active' => $this->is_active,
+            'status' => $this->status,
+            'approved_by' => $this->approved_by,
+            'approved_at' => $this->approved_at?->format('Y-m-d H:i:s'),
+            'rejection_reason' => $this->rejection_reason,
+            'approver' => $this->whenLoaded('approver', function () {
+                return [
+                    'id' => $this->approver->id,
+                    'name' => $this->approver->name,
+                    'email' => $this->approver->email
+                ];
+            }),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];

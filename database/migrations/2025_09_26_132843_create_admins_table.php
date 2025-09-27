@@ -18,12 +18,16 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password_hash');
             $table->enum('role', ['super', 'moderator'])->default('moderator');
-            $table->boolean('is_active')->default(true);
+            $table->enum('status', ['pending', 'active', 'banned'])->default('pending');
+            $table->foreignId('approved_by')->nullable()->constrained('admins')->onDelete('set null');
+            $table->timestamp('approved_at')->nullable();
+            $table->text('rejection_reason')->nullable();
             $table->timestamps();
             
             // Add indexes for better performance
-            $table->index(['email', 'is_active']);
+            $table->index(['email', 'status']);
             $table->index('role');
+            $table->index('status');
         });
 
         // Create admin_actions table

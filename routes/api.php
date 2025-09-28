@@ -35,6 +35,18 @@ Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
 
+// Debug route for Railway
+Route::get('/debug', function () {
+    return response()->json([
+        'message' => 'Debug endpoint working',
+        'app_key' => config('app.key') ? 'SET' : 'MISSING',
+        'db_connection' => config('database.default'),
+        'environment' => config('app.env'),
+        'routes_cached' => file_exists(base_path('bootstrap/cache/routes-v7.php')),
+        'config_cached' => file_exists(base_path('bootstrap/cache/config.php')),
+    ]);
+});
+
 // Public product routes (no authentication required)
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{product}', [ProductController::class, 'show']);

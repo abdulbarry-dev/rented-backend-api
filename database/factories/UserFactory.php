@@ -24,10 +24,10 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
+            'full_name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),
+            'gender' => fake()->randomElement(['H', 'F']),
             'avatar_path' => null, // Can be set later or use withAvatar() state
             'email_verified_at' => now(),
             'password_hash' => static::$password ??= Hash::make('password'),

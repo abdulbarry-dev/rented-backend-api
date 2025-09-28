@@ -19,7 +19,7 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'owner' => [
                 'id' => $this->owner->id,
-                'name' => $this->owner->first_name . ' ' . $this->owner->last_name,
+                'name' => $this->owner->full_name,
             ],
             'title' => $this->description?->title,
             'description' => $this->description?->description,

@@ -14,7 +14,7 @@ class UserService extends BaseService
      */
     public function getAllUsers(int $perPage = 15): LengthAwarePaginator
     {
-        return User::select(['id', 'first_name', 'last_name', 'email', 'phone', 'role', 'is_active', 'created_at', 'updated_at'])
+        return User::select(['id', 'full_name', 'email', 'phone', 'gender', 'role', 'is_active', 'created_at', 'updated_at'])
                   ->active() // Only show active users
                   ->paginate($perPage);
     }
@@ -44,7 +44,7 @@ class UserService extends BaseService
      */
     public function getUserForDisplay(int $id): ?User
     {
-        return User::select(['id', 'first_name', 'last_name', 'email', 'phone', 'role', 'is_active', 'created_at', 'updated_at'])
+        return User::select(['id', 'full_name', 'email', 'phone', 'gender', 'role', 'is_active', 'created_at', 'updated_at'])
                   ->find($id);
     }
 
@@ -79,7 +79,7 @@ class UserService extends BaseService
      */
     public function getUsersByRole(string $role, int $perPage = 15): LengthAwarePaginator
     {
-        return User::select(['id', 'first_name', 'last_name', 'email', 'phone', 'role', 'is_active', 'created_at', 'updated_at'])
+        return User::select(['id', 'full_name', 'email', 'phone', 'gender', 'role', 'is_active', 'created_at', 'updated_at'])
                   ->byRole($role)
                   ->active()
                   ->paginate($perPage);

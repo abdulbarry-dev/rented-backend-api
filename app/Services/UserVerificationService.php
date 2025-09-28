@@ -58,7 +58,7 @@ class UserVerificationService extends BaseService
      */
     public function getPendingVerifications(int $perPage = 15): LengthAwarePaginator
     {
-        return UserVerification::with(['user:id,first_name,last_name,email'])
+        return UserVerification::with(['user:id,full_name,email'])
             ->pending()
             ->orderBy('submitted_at', 'asc')
             ->paginate($perPage);
@@ -69,7 +69,7 @@ class UserVerificationService extends BaseService
      */
     public function getAllVerifications(?string $status = null, int $perPage = 15): LengthAwarePaginator
     {
-        $query = UserVerification::with(['user:id,first_name,last_name,email', 'reviewer:id,name']);
+        $query = UserVerification::with(['user:id,full_name,email', 'reviewer:id,name']);
 
         if ($status) {
             $query->where('verification_status', $status);

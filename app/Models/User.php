@@ -20,10 +20,10 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'full_name',
         'email',
         'phone',
+        'gender',
         'avatar_path',
         'password_hash',
         'role',
@@ -52,22 +52,6 @@ class User extends Authenticatable
             'password_hash' => 'hashed',
             'is_active' => 'boolean',
         ];
-    }
-
-    /**
-     * Get the user's full name.
-     */
-    public function getFullNameAttribute(): string
-    {
-        return $this->first_name . ' ' . $this->last_name;
-    }
-
-    /**
-     * Check if the user's email is verified.
-     */
-    public function hasVerifiedEmail(): bool
-    {
-        return !is_null($this->email_verified_at);
     }
 
     /**
@@ -108,6 +92,22 @@ class User extends Authenticatable
     public function isSeller(): bool
     {
         return $this->role === 'seller';
+    }
+
+    /**
+     * Check if user is male.
+     */
+    public function isMale(): bool
+    {
+        return $this->gender === 'H';
+    }
+
+    /**
+     * Check if user is female.
+     */
+    public function isFemale(): bool
+    {
+        return $this->gender === 'F';
     }
 
     /**

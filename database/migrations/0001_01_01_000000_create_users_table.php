@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('last_name');
+            $table->string('full_name');
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->enum('gender', ['H', 'F']); // Homme or Femme
             $table->string('avatar_path')->nullable(); // Profile avatar image path
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password_hash');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             // New fields
-            $table->enum('role', ['customer', 'seller'])->default('customer'); // User role
+            $table->enum('role', ['customer', 'seller']); // User role (required)
             $table->boolean('is_active')->default(true); // Active or banned user
         });
 

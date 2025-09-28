@@ -15,10 +15,10 @@ class AuthService extends BaseService
     {
         $user = $this->handleUniqueConstraint(function () use ($data) {
             return User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
+                'full_name' => $data['full_name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
+                'gender' => $data['gender'],
                 'password_hash' => Hash::make($data['password']),
                 'role' => $data['role'] ?? 'customer', // Default to customer
                 'is_active' => true,

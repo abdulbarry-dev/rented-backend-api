@@ -19,7 +19,7 @@ class ProductService extends BaseService
      */
     public function getAllProducts(int $perPage = 15): LengthAwarePaginator
     {
-        return Product::with(['description', 'owner:id,first_name,last_name', 'verification'])
+        return Product::with(['description', 'owner:id,full_name', 'verification'])
                      ->verified()
                      ->active()
                      ->paginate($perPage);
@@ -148,7 +148,7 @@ class ProductService extends BaseService
      */
     public function getProductById(int $id): Product
     {
-        return Product::with(['description', 'owner:id,first_name,last_name', 'verification', 'reviews.user:id,first_name,last_name'])
+        return Product::with(['description', 'owner:id,full_name', 'verification', 'reviews.user:id,full_name'])
                      ->findOrFail($id);
     }
 
@@ -157,7 +157,7 @@ class ProductService extends BaseService
      */
     public function getProductsByCategory(string $category, int $perPage = 15): LengthAwarePaginator
     {
-        return Product::with(['description', 'owner:id,first_name,last_name', 'verification'])
+        return Product::with(['description', 'owner:id,full_name', 'verification'])
                      ->whereHas('description', function($query) use ($category) {
                          $query->whereJsonContains('categories', $category);
                      })
@@ -171,7 +171,7 @@ class ProductService extends BaseService
      */
     public function searchProducts(string $search, int $perPage = 15): LengthAwarePaginator
     {
-        return Product::with(['description', 'owner:id,first_name,last_name', 'verification'])
+        return Product::with(['description', 'owner:id,full_name', 'verification'])
                      ->whereHas('description', function($query) use ($search) {
                          $query->where('title', 'like', "%{$search}%")
                                ->orWhere('description', 'like', "%{$search}%");
@@ -186,7 +186,7 @@ class ProductService extends BaseService
      */
     public function getProductsForReview(int $perPage = 15): LengthAwarePaginator
     {
-        return Product::with(['description', 'owner:id,first_name,last_name', 'verification'])
+        return Product::with(['description', 'owner:id,full_name', 'verification'])
                      ->whereHas('verification', function($query) {
                          $query->where('verification_status', 'pending');
                      })
@@ -272,7 +272,7 @@ class ProductService extends BaseService
         return [
             'message' => 'Rental request initiated successfully',
             'rental_id' => 'RENT_' . time() . '_' . $product->id,
-            'product' => $product->load(['description', 'owner:id,first_name,last_name'])
+            'product' => $product->load(['description', 'owner:id,full_name'])
         ];
     }
 }

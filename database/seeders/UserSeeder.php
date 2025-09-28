@@ -37,9 +37,9 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'customer@example.com'],
             [
-                'first_name' => 'Test',
-                'last_name' => 'Customer',
+                'full_name' => 'Test Customer',
                 'phone' => '+1234567890',
+                'gender' => 'H',
                 'avatar_path' => null,
                 'email_verified_at' => now(),
                 'password_hash' => Hash::make('password123'),
@@ -52,9 +52,9 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'seller@example.com'],
             [
-                'first_name' => 'Test',
-                'last_name' => 'Seller',
+                'full_name' => 'Test Seller',
                 'phone' => '+1234567891',
+                'gender' => 'F',
                 'avatar_path' => null,
                 'email_verified_at' => now(),
                 'password_hash' => Hash::make('password123'),

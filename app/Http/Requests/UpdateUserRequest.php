@@ -18,10 +18,11 @@ class UpdateUserRequest extends FormRequest
         $userId = $this->route('user'); // Get ID from route parameter
         
         return [
-            'first_name' => 'sometimes|required|string|max:255|regex:/^[a-zA-Z\s]+$/',
-            'last_name' => 'sometimes|required|string|max:255|regex:/^[a-zA-Z\s]+$/',
+            'full_name' => 'sometimes|required|string|max:255|regex:/^[a-zA-Z\s]+$/',
             'email' => 'sometimes|required|string|email:rfc,dns|max:255|unique:users,email,' . $userId,
             'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . $userId . '|regex:/^[\+]?[0-9\-\(\)\s]+$/',
+            'gender' => 'sometimes|required|string|in:H,F',
+            'role' => 'sometimes|required|string|in:customer,seller',
             'password' => 'sometimes|required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
         ];
     }
@@ -29,11 +30,14 @@ class UpdateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'first_name.regex' => 'First name should only contain letters and spaces.',
-            'last_name.regex' => 'Last name should only contain letters and spaces.',
+            'full_name.regex' => 'Full name should only contain letters and spaces.',
             'email.unique' => 'This email is already registered.',
             'phone.unique' => 'This phone number is already registered.',
             'phone.regex' => 'Please enter a valid phone number.',
+            'gender.required' => 'Gender is required.',
+            'gender.in' => 'Gender must be either H (Homme) or F (Femme).',
+            'role.required' => 'Role selection is required.',
+            'role.in' => 'Role must be either customer or seller.',
             'password.regex' => 'Password must contain at least one lowercase letter, one uppercase letter, and one number.',
         ];
     }

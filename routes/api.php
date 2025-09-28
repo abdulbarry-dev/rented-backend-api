@@ -75,7 +75,6 @@ Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::patch('/admins/{admin}/ban', [AdminController::class, 'banAdmin']);
         Route::patch('/admins/{admin}/unban', [AdminController::class, 'unbanAdmin']);
         Route::delete('/admins/{admin}', [AdminController::class, 'deleteAdmin']);
-        Route::patch('/admins/{admin}/status', [AdminController::class, 'updateStatus']); // DEPRECATED
         
         // User management - ADMIN ONLY (super admins have full access)
         Route::apiResource('users', UserController::class);

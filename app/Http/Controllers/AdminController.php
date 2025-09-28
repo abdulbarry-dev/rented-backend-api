@@ -177,65 +177,26 @@ class AdminController extends Controller
                 throw new UnauthorizedException('Only super admins can view all admins');
             }
 
-            $admins = Admin::active()->get();
+            // Get all admins with their approver information, ordered by status and creation date
+            $admins = Admin::with('approver:id,name,email')
+                          ->orderBy('status', 'desc') // active first, then pending, then banned
+                          ->orderBy('created_at', 'desc')
+                          ->get();
 
             return response()->json([
                 'success' => true,
-                'data' => AdminResource::collection($admins)
+                'data' => AdminResource::collection($admins),
+                'summary' => [
+                    'total' => $admins->count(),
+                    'active' => $admins->where('status', 'active')->count(),
+                    'pending' => $admins->where('status', 'pending')->count(),
+                    'banned' => $admins->where('status', 'banned')->count()
+                ]
             ]);
         } catch (UnauthorizedException $e) {
             throw $e;
         } catch (\Exception $e) {
             throw new \Exception('Failed to get admins', 500);
-        }
-    }
-
-    /**
-     * Update admin status (super admin only) - DEPRECATED, use specific endpoints
-     */
-    public function updateStatus(Request $request, int $adminId): JsonResponse
-    {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can update admin status');
-            }
-
-            $request->validate([
-                'status' => 'required|in:active,banned'
-            ]);
-
-            $admin = Admin::findOrFail($adminId);
-            
-            // Prevent changing own status
-            if ($admin->id === $currentAdmin->id) {
-                throw new ConflictException('Cannot change your own status');
-            }
-
-            // Prevent changing super admin status
-            if ($admin->isSuper()) {
-                throw new ConflictException('Cannot change super admin status');
-            }
-
-            $admin->update(['status' => $request->status]);
-            
-            // Log the action
-            $currentAdmin->logAction(
-                'admin_status_updated',
-                Admin::class,
-                $adminId
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin status updated successfully',
-                'data' => new AdminResource($admin)
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to update admin status', 500);
         }
     }
 

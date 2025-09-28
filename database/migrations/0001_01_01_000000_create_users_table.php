@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email')->unique();
             $table->string('phone')->unique();
+            $table->string('avatar_path')->nullable(); // Profile avatar image path
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password_hash');
             $table->rememberToken();

@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -23,6 +24,7 @@ class User extends Authenticatable
         'last_name',
         'email',
         'phone',
+        'avatar_path',
         'password_hash',
         'role',
         'is_active',
@@ -239,5 +241,54 @@ class User extends Authenticatable
             ->orWhereHas('verification', function ($q) {
                 $q->where('verification_status', '!=', 'verified');
             });
+    }
+
+    /**
+     * Get the avatar URL attribute.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path ? Storage::url($this->avatar_path) : null;
+    }
+
+    /**
+     * Get avatar URL or default avatar.
+     */
+    public function getAvatarOrDefaultAttribute(): string
+    {
+        return $this->avatar_url ?? '/images/default-user-avatar.png';
+    }
+
+    /**
+     * Set avatar from uploaded file.
+     */
+    public function setAvatar($file): ?string
+    {
+        if ($file) {
+            // Delete old avatar if exists
+            if ($this->avatar_path) {
+                Storage::delete($this->avatar_path);
+            }
+            
+            // Store new avatar
+            $path = $file->store('avatars/users', 'public');
+            $this->update(['avatar_path' => $path]);
+            return $path;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Delete user avatar.
+     */
+    public function deleteAvatar(): bool
+    {
+        if ($this->avatar_path) {
+            Storage::delete($this->avatar_path);
+            return $this->update(['avatar_path' => null]);
+        }
+        
+        return true;
     }
 }

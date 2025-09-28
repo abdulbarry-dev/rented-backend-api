@@ -48,6 +48,22 @@ return new class extends Migration
             $table->unique(['user_id', 'product_id']); // One review per user per product
         });
 
+        // Product verifications table (must be created after products table)
+        Schema::create('product_verifications', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->enum('verification_status', ['pending', 'verified', 'rejected'])->default('pending');
+            $table->text('notes')->nullable(); // Admin notes for rejection/approval
+            $table->foreignId('reviewed_by')->nullable()->constrained('admins')->onDelete('set null');
+            $table->timestamp('submitted_at')->useCurrent();
+            $table->timestamp('reviewed_at')->nullable();
+            $table->timestamps();
+            
+            $table->index(['verification_status', 'submitted_at']);
+            $table->index(['product_id', 'verification_status']);
+            $table->index('reviewed_by');
+        });
+
     }
 
     /**
@@ -55,6 +71,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('product_verifications');
         Schema::dropIfExists('reviews');
         Schema::dropIfExists('product_descriptions');
         Schema::dropIfExists('products');

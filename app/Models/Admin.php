@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class Admin extends Authenticatable
@@ -19,6 +20,7 @@ class Admin extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'avatar_path',
         'password_hash',
         'role',
         'status',
@@ -270,5 +272,54 @@ class Admin extends Authenticatable
             'status' => 'active',
             'rejection_reason' => null
         ]);
+    }
+
+    /**
+     * Get the avatar URL attribute.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path ? Storage::url($this->avatar_path) : null;
+    }
+
+    /**
+     * Get avatar URL or default avatar.
+     */
+    public function getAvatarOrDefaultAttribute(): string
+    {
+        return $this->avatar_url ?? '/images/default-admin-avatar.png';
+    }
+
+    /**
+     * Set avatar from uploaded file.
+     */
+    public function setAvatar($file): ?string
+    {
+        if ($file) {
+            // Delete old avatar if exists
+            if ($this->avatar_path) {
+                Storage::delete($this->avatar_path);
+            }
+            
+            // Store new avatar
+            $path = $file->store('avatars/admins', 'public');
+            $this->update(['avatar_path' => $path]);
+            return $path;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Delete admin avatar.
+     */
+    public function deleteAvatar(): bool
+    {
+        if ($this->avatar_path) {
+            Storage::delete($this->avatar_path);
+            return $this->update(['avatar_path' => null]);
+        }
+        
+        return true;
     }
 }

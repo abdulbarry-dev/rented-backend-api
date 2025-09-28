@@ -28,6 +28,7 @@ class UserFactory extends Factory
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->unique()->phoneNumber(),
+            'avatar_path' => null, // Can be set later or use withAvatar() state
             'email_verified_at' => now(),
             'password_hash' => static::$password ??= Hash::make('password'),
             'role' => fake()->randomElement(['customer', 'seller']),
@@ -73,6 +74,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_active' => false,
+        ]);
+    }
+
+    /**
+     * Create a user with an avatar.
+     */
+    public function withAvatar(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'avatar_path' => 'avatars/users/' . fake()->uuid() . '.jpg',
         ]);
     }
 }

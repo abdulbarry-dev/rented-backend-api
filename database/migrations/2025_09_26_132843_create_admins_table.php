@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('avatar_path')->nullable(); // Profile avatar image path
             $table->string('password_hash');
             $table->enum('role', ['super', 'moderator'])->default('moderator');
             $table->enum('status', ['pending', 'active', 'banned'])->default('pending');

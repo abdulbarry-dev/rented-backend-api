@@ -12,7 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Disable CSRF for API routes (should already be disabled by default in Laravel 11)
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
+        
+        // Trust all proxies (Railway uses proxies)
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

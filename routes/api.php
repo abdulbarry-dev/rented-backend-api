@@ -23,6 +23,17 @@ Route::get('/health', function () {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Debug register route
+Route::match(['GET', 'POST'], '/register-debug', function () {
+    return response()->json([
+        'method' => request()->method(),
+        'url' => request()->url(),
+        'headers' => request()->headers->all(),
+        'content' => request()->getContent(),
+        'all_data' => request()->all(),
+    ]);
+});
+
 // Admin public routes (no authentication required)
 Route::prefix('admin')->group(function () {
     Route::post('/register', [AdminController::class, 'register']); // Anyone can register as admin
@@ -33,6 +44,11 @@ Route::prefix('admin')->group(function () {
 // Test route
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
+});
+
+// POST Test route
+Route::post('/test-post', function () {
+    return response()->json(['message' => 'POST is working', 'data' => request()->all()]);
 });
 
 // Debug route for Railway

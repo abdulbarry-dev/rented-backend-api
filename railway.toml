@@ -1,0 +1,17 @@
+[build]
+builder = "herokuish"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+startCommand = "php artisan serve --host=0.0.0.0 --port=$PORT"
+
+[variables]
+# Runtime variables will be set via Railway dashboard
+APP_ENV = "production"
+APP_DEBUG = "false"
+LOG_CHANNEL = "stderr"
+SESSION_DRIVER = "database"
+CACHE_DRIVER = "database"
+QUEUE_CONNECTION = "database"

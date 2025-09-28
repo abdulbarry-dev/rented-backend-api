@@ -18,6 +18,7 @@ class AdminResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'avatar_url' => $this->avatar_url,
             'role' => $this->role,
             'status' => $this->status,
             'approved_by' => $this->approved_by,

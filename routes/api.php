@@ -9,6 +9,16 @@ use App\Http\Controllers\AdminProductController;
 use App\Http\Controllers\UserVerificationController;
 use App\Http\Controllers\AdminUserVerificationController;
 
+// Health check endpoint for Railway
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'OK',
+        'timestamp' => now()->toISOString(),
+        'app' => config('app.name'),
+        'version' => '1.0.0'
+    ]);
+});
+
 // Public routes (no authentication required)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

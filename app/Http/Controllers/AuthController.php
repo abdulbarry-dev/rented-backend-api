@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
@@ -24,18 +23,16 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            $user = $this->authService->register($request->validated());
-            
-            // Alternative 1: Standard Laravel Sanctum syntax
-            $token = $user->createToken('API Token')->plainTextToken;
+            $result = $this->authService->register($request->validated());
             
             return response()->json([
                 'success' => true,
                 'message' => 'User registered successfully',
                 'data' => [
-                    'user' => new UserResource($user),
-                    'token' => $token,
-                    'token_type' => 'Bearer'
+                    'user' => new UserResource($result['user']),
+                    'token' => $result['token'],
+                    'token_type' => 'Bearer',
+                    'expires_at' => $result['token_expires_at']
                 ]
             ], 201);
         } catch (\Exception $e) {
@@ -53,30 +50,23 @@ class AuthController extends Controller
     {
         try {
             $credentials = $request->validated();
-            
-            if (!$this->authService->attempt($credentials)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid credentials'
-                ], 401);
-            }
-
-            $user = Auth::user();
-            
-            // Alternative 2: With token abilities and expiration
-            $tokenResult = $user->createToken('API Token', ['*'], now()->addDays(30));
-            $token = $tokenResult->plainTextToken;
+            $result = $this->authService->login($credentials);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
                 'data' => [
-                    'user' => new UserResource($user),
-                    'token' => $token,
+                    'user' => new UserResource($result['user']),
+                    'token' => $result['token'],
                     'token_type' => 'Bearer',
-                    'expires_at' => $tokenResult->accessToken->expires_at
+                    'expires_at' => $result['token_expires_at']
                 ]
             ]);
+        } catch (\App\Exceptions\UnauthorizedException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 401);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -148,8 +138,8 @@ class AuthController extends Controller
             // Delete current token
             $user->currentAccessToken()?->delete();
             
-            // Alternative 3: Using direct PersonalAccessToken creation
-            $tokenResult = $user->createToken('API Token', ['*']);
+            // Create new token with same pattern as login
+            $tokenResult = $user->createToken('user-token', ['*'], now()->addDays(30));
             $token = $tokenResult->plainTextToken;
 
             return response()->json([
@@ -157,7 +147,8 @@ class AuthController extends Controller
                 'message' => 'Token refreshed successfully',
                 'data' => [
                     'token' => $token,
-                    'token_type' => 'Bearer'
+                    'token_type' => 'Bearer',
+                    'expires_at' => $tokenResult->accessToken->expires_at
                 ]
             ]);
         } catch (\Exception $e) {

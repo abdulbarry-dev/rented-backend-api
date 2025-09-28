@@ -9,11 +9,10 @@ export PORT=${PORT:-8000}
 chmod -R 755 storage bootstrap/cache
 chmod -R 777 storage
 
-# Clear and cache configurations
+# Clear configurations (no view:clear for API-only app)
 php artisan config:clear
 php artisan cache:clear
 php artisan route:clear
-php artisan view:clear
 
 # Generate app key if not exists
 php artisan key:generate --force --no-interaction
@@ -24,7 +23,7 @@ php artisan migrate --force --no-interaction
 # Seed database if needed (only if tables are empty)
 php artisan db:seed --force --no-interaction || echo "Seeding failed or not needed"
 
-# Cache configurations for production
+# Cache configurations for production (no view:cache for API-only app)
 php artisan config:cache --no-interaction
 php artisan route:cache --no-interaction
 

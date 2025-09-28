@@ -1,0 +1,2 @@
+# This directory is kept for Laravel compatibility
+# API-only application doesn't need Blade views

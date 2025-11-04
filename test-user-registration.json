@@ -1,9 +1,0 @@
-{
-  "full_name": "Test Junkuser",
-  "email": "junkuser@test.com",
-  "phone": "+1234567999",
-  "gender": "H",
-  "role": "customer",
-  "password": "TestPass123",
-  "password_confirmation": "TestPass123"
-}

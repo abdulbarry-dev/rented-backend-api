@@ -102,7 +102,10 @@ class AdminController extends Controller
             $admin->logAction('logout');
             
             // Revoke current token
-            $request->user()->currentAccessToken()->delete();
+            $token = $request->user()->currentAccessToken();
+            if ($token) {
+                $token->delete();
+            }
 
             return response()->json([
                 'success' => true,
@@ -259,143 +262,78 @@ class AdminController extends Controller
     /**
      * Approve pending admin (super admin only)
      */
-    public function approveAdmin(Request $request, int $adminId): JsonResponse
+    public function approveAdmin(Request $request, Admin $admin): JsonResponse
     {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can approve pending admins');
-            }
+        $this->adminService->approvePendingAdmin($admin, $request->user());
 
-            $pendingAdmin = Admin::findOrFail($adminId);
-            $result = $this->adminService->approvePendingAdmin($pendingAdmin, $currentAdmin);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin approved successfully',
-                'data' => new AdminResource($pendingAdmin->fresh())
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to approve admin', 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin approved successfully',
+            'data' => new AdminResource($admin->fresh())
+        ]);
     }
 
     /**
      * Reject pending admin (super admin only)
      */
-    public function rejectAdmin(Request $request, int $adminId): JsonResponse
+    public function rejectAdmin(Request $request, Admin $admin): JsonResponse
     {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can reject pending admins');
-            }
+        $validated = $request->validate([
+            'reason' => 'required|string|min:10|max:500'
+        ]);
 
-            $request->validate([
-                'reason' => 'required|string|max:500'
-            ]);
+        $this->adminService->rejectPendingAdmin($admin, $request->user(), $validated['reason']);
 
-            $pendingAdmin = Admin::findOrFail($adminId);
-            $result = $this->adminService->rejectPendingAdmin($pendingAdmin, $currentAdmin, $request->reason);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin rejected successfully',
-                'data' => new AdminResource($pendingAdmin->fresh())
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to reject admin', 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin rejected successfully',
+            'data' => new AdminResource($admin->fresh())
+        ]);
     }
 
     /**
      * Ban admin (super admin only)
      */
-    public function banAdmin(Request $request, int $adminId): JsonResponse
+    public function banAdmin(Request $request, Admin $admin): JsonResponse
     {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can ban admins');
-            }
+        $validated = $request->validate([
+            'reason' => 'required|string|min:10|max:500'
+        ]);
 
-            $request->validate([
-                'reason' => 'required|string|max:500'
-            ]);
+        $this->adminService->banAdmin($admin, $request->user(), $validated['reason']);
 
-            $admin = Admin::findOrFail($adminId);
-            $result = $this->adminService->banAdmin($admin, $currentAdmin, $request->reason);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin banned successfully',
-                'data' => new AdminResource($admin->fresh())
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to ban admin', 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin banned successfully',
+            'data' => new AdminResource($admin->fresh())
+        ]);
     }
 
     /**
      * Unban admin (super admin only)
      */
-    public function unbanAdmin(Request $request, int $adminId): JsonResponse
+    public function unbanAdmin(Request $request, Admin $admin): JsonResponse
     {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can unban admins');
-            }
+        $this->adminService->unbanAdmin($admin, $request->user());
 
-            $admin = Admin::findOrFail($adminId);
-            $result = $this->adminService->unbanAdmin($admin, $currentAdmin);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin unbanned successfully',
-                'data' => new AdminResource($admin->fresh())
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to unban admin', 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin unbanned successfully',
+            'data' => new AdminResource($admin->fresh())
+        ]);
     }
 
     /**
      * Delete admin (super admin only)
      */
-    public function deleteAdmin(Request $request, int $adminId): JsonResponse
+    public function deleteAdmin(Request $request, Admin $admin): JsonResponse
     {
-        try {
-            $currentAdmin = $request->user();
-            
-            if (!$currentAdmin instanceof Admin || !$currentAdmin->isSuper()) {
-                throw new UnauthorizedException('Only super admins can delete admins');
-            }
+        $this->adminService->deleteAdmin($admin, $request->user());
 
-            $admin = Admin::findOrFail($adminId);
-            $result = $this->adminService->deleteAdmin($admin, $currentAdmin);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin deleted successfully'
-            ]);
-        } catch (UnauthorizedException | ConflictException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new \Exception('Failed to delete admin', 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin deleted successfully'
+        ]);
     }
 
     /**

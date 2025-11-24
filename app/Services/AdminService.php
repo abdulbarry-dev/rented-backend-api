@@ -155,71 +155,99 @@ class AdminService extends BaseService
 
     /**
      * Ban admin (super admin only)
+     * 
+     * @throws UnauthorizedException If banner is not a super admin
+     * @throws ConflictException If trying to ban super admin or self
      */
-    public function banAdmin(Admin $admin, Admin $banner, string $reason): bool
+    public function banAdmin(Admin $admin, Admin $banner, string $reason): void
     {
+        // Authorization check
         if (!$banner->isSuper()) {
             throw new UnauthorizedException('Only super admins can ban admins');
         }
 
+        // Business rule validations
         if ($admin->isSuper()) {
-            throw new ConflictException('Cannot ban super admin');
+            throw new ConflictException('Super admins cannot be banned');
         }
 
         if ($admin->id === $banner->id) {
-            throw new ConflictException('Cannot ban yourself');
+            throw new ConflictException('You cannot ban yourself');
         }
 
-        $result = $admin->ban($banner, $reason);
+        if ($admin->isBanned()) {
+            throw new ConflictException('Admin is already banned');
+        }
+
+        // Revoke all tokens before banning
+        $admin->tokens()->delete();
+
+        // Perform the ban
+        $admin->ban($banner, $reason);
         
-        if ($result) {
-            $banner->logAction('admin_banned', Admin::class, $admin->id);
-        }
-
-        return $result;
+        // Log the action
+        $banner->logAction('admin_banned', Admin::class, $admin->id);
     }
 
     /**
      * Unban admin (super admin only)
+     * 
+     * @throws UnauthorizedException If unbanner is not a super admin
+     * @throws ConflictException If admin is not banned
      */
-    public function unbanAdmin(Admin $admin, Admin $unbanner): bool
+    public function unbanAdmin(Admin $admin, Admin $unbanner): void
     {
+        // Authorization check
         if (!$unbanner->isSuper()) {
             throw new UnauthorizedException('Only super admins can unban admins');
         }
 
+        // Business rule validation
         if (!$admin->isBanned()) {
-            throw new ConflictException('Admin is not banned');
+            throw new ConflictException('Admin is not currently banned');
         }
 
-        $result = $admin->unban($unbanner);
+        // Perform the unban
+        $admin->unban($unbanner);
         
-        if ($result) {
-            $unbanner->logAction('admin_unbanned', Admin::class, $admin->id);
-        }
-
-        return $result;
+        // Log the action
+        $unbanner->logAction('admin_unbanned', Admin::class, $admin->id);
     }
 
     /**
      * Delete admin (super admin only)
+     * 
+     * @throws UnauthorizedException If deleter is not a super admin
+     * @throws ConflictException If trying to delete super admin or self
      */
-    public function deleteAdmin(Admin $admin, Admin $deleter): bool
+    public function deleteAdmin(Admin $admin, Admin $deleter): void
     {
+        // Authorization check
         if (!$deleter->isSuper()) {
             throw new UnauthorizedException('Only super admins can delete admins');
         }
 
+        // Business rule validations
         if ($admin->isSuper()) {
-            throw new ConflictException('Cannot delete super admin');
+            throw new ConflictException('Super admins cannot be deleted');
         }
 
         if ($admin->id === $deleter->id) {
-            throw new ConflictException('Cannot delete yourself');
+            throw new ConflictException('You cannot delete yourself');
         }
 
+        // Log the action before deletion
         $deleter->logAction('admin_deleted', Admin::class, $admin->id);
         
-        return $admin->delete();
+        // Cleanup: Revoke all tokens
+        $admin->tokens()->delete();
+        
+        // Cleanup: Delete avatar if exists
+        if ($admin->avatar_path) {
+            $admin->deleteAvatar();
+        }
+        
+        // Perform the deletion
+        $admin->delete();
     }
 }

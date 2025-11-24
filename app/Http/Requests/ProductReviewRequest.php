@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use App\Exceptions\UnauthorizedException;
 
 class ProductReviewRequest extends FormRequest
 {
@@ -33,6 +34,6 @@ class ProductReviewRequest extends FormRequest
 
     protected function failedAuthorization()
     {
-        throw new \App\Exceptions\UnauthorizedException('Only super admins can review products');
+        throw new UnauthorizedException('Only super admins can review products');
     }
 }
